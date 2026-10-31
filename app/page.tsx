@@ -87,7 +87,14 @@ export default function HomePage() {
   };
 
   const scrollToPlan = () => {
-    planSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const attemptScroll = (retries = 6) => {
+      if (planSectionRef.current) {
+        planSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+      } else if (retries > 0) {
+        setTimeout(() => attemptScroll(retries - 1), 50);
+      }
+    };
+    attemptScroll();
   };
 
   const scrollToSample = () => {
@@ -107,9 +114,7 @@ export default function HomePage() {
     setFormData(SAMPLE_EVENT_PLAN.intake);
     savePlanToStorage(SAMPLE_EVENT_PLAN);
     showToast('Sample royal wedding plan loaded successfully!');
-    setTimeout(() => {
-      scrollToPlan();
-    }, 100);
+    scrollToPlan();
   };
 
   // Submit Intake Form to generate a new plan
@@ -209,13 +214,8 @@ export default function HomePage() {
   };
 
   const handleNewPlan = () => {
-    if (
-      currentPlan &&
-      !window.confirm('Start a new event? Your current plan will remain in your browser storage until overwritten.')
-    ) {
-      return;
-    }
     scrollToForm();
+    showToast('Ready to design your next celebration! Fill in the parameters below.');
   };
 
   const handlePrint = () => {

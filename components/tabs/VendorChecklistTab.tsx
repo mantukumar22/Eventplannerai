@@ -32,16 +32,16 @@ export function VendorChecklistTab({
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
     new Set(vendors.vendors.slice(0, 2).map((v) => v.id))
   );
-  const [sectionRating, setSectionRating] = useState<'up' | 'down' | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        return (localStorage.getItem('rating_vendors') as 'up' | 'down') || null;
-      } catch {
-        return null;
-      }
+  const [sectionRating, setSectionRating] = useState<'up' | 'down' | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem('rating_vendors') as 'up' | 'down' | null;
+      if (saved) setSectionRating(saved);
+    } catch {
+      // safe fallback
     }
-    return null;
-  });
+  }, []);
 
   const bookedCount = items.filter((v) => v.booked).length;
   const totalCount = items.length;

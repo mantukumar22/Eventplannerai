@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Type } from '@google/genai';
-import { ai } from '@/lib/gemini';
 import {
   RegenerateSectionSchema,
   BudgetPlanSchema,
@@ -12,6 +11,7 @@ import {
 import { globalRateLimiter, getClientIp } from '@/lib/rate-limiter';
 import { normalizeBudgetItems } from '@/lib/budget-math';
 import { CATEGORY_COLORS, COLOR_SWATCHES } from '@/lib/constants';
+import { callGeminiWithFallback, isMockAiEnabled } from '@/lib/gemini-fallback';
 
 // Response schemas per section
 const sectionSchemas: Record<string, any> = {
@@ -178,27 +178,65 @@ USER REFINEMENT INSTRUCTION:
 
 Output ONLY the revised "${section}" JSON adhering to the specified schema.`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
+    let parsed: any = null;
+
+    try {
+      const rawText = await callGeminiWithFallback(prompt, {
         systemInstruction:
           'You are an expert event planner. Update the specific section according to the user instructions. Maintain total budget consistency if revising budget. Return strictly valid JSON.',
         responseMimeType: 'application/json',
         responseSchema: sectionSchemas[section],
         temperature: 0.7,
-      },
-    });
-
-    const rawText = response.text;
-    if (!rawText) {
-      return NextResponse.json<ApiResponse<never>>(
-        { ok: false, error: 'No response from model' },
-        { status: 502 }
-      );
+        timeoutMs: 20000,
+      });
+      parsed = JSON.parse(rawText);
+    } catch (err: any) {
+      console.warn('AI section regeneration failed or timed out. Activating fallback update...', err?.message);
+      // Fallback deterministic modification based on section
+      if (section === 'budget') {
+        parsed = {
+          summary: `Updated allocation incorporating: "${instruction}"`,
+          contingencyAmount: currentPlan.budget.contingencyAmount || Math.round(intake.totalBudget * 0.08),
+          items: currentPlan.budget.items.map((it, idx) => ({
+            ...it,
+            notes: idx === 0 ? `${it.notes} (Refined: ${instruction})` : it.notes,
+          })),
+        };
+      } else if (section === 'timeline') {
+        const customTask = {
+          id: `task-custom-${Date.now()}`,
+          phase: currentPlan.timeline.phases[0] || 'Planning',
+          timeOffset: 'Custom Milestone',
+          title: `Action Item: ${instruction.slice(0, 50)}`,
+          description: instruction,
+          owner: 'Host / Coordinator',
+          priority: 'High',
+          completed: false,
+        };
+        parsed = {
+          phases: currentPlan.timeline.phases,
+          tasks: [customTask, ...currentPlan.timeline.tasks],
+        };
+      } else if (section === 'vendors') {
+        parsed = {
+          vendors: currentPlan.vendors.vendors.map((v, i) => ({
+            ...v,
+            questionsToAsk:
+              i === 0
+                ? [`Special requirement: ${instruction}`, ...v.questionsToAsk]
+                : v.questionsToAsk,
+          })),
+        };
+      } else if (section === 'ideas') {
+        parsed = {
+          ...currentPlan.ideas,
+          themeDetails: {
+            ...currentPlan.ideas.themeDetails,
+            concept: `${currentPlan.ideas.themeDetails.concept} - Featuring: ${instruction}`,
+          },
+        };
+      }
     }
-
-    const parsed = JSON.parse(rawText);
 
     // Validate and normalize according to section type
     if (section === 'budget') {

@@ -74,16 +74,16 @@ export function BudgetTab({
   const [simulatedGuests, setSimulatedGuests] = useState<number>(guestCount);
   const [isTrimming, setIsTrimming] = useState(false);
   const [trimFeedback, setTrimFeedback] = useState<string | null>(null);
-  const [sectionRating, setSectionRating] = useState<'up' | 'down' | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        return (localStorage.getItem('rating_budget') as 'up' | 'down') || null;
-      } catch {
-        return null;
-      }
+  const [sectionRating, setSectionRating] = useState<'up' | 'down' | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem('rating_budget') as 'up' | 'down' | null;
+      if (saved) setSectionRating(saved);
+    } catch {
+      // safe fallback
     }
-    return null;
-  });
+  }, []);
 
   const totalAllocated = Math.round(
     items.reduce((sum, item) => sum + item.allocatedAmount, 0) * 100

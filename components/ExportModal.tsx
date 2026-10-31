@@ -5,10 +5,11 @@
  * RFC 5545 iCalendar (.ics), and Print/PDF binder formats.
  */
 import React from 'react';
-import { Download, FileText, Table, Printer, X, Check, CalendarPlus } from 'lucide-react';
+import { Download, FileText, Table, Printer, X, Check, CalendarPlus, Copy } from 'lucide-react';
 import { EventPlan } from '@/lib/schemas';
 import { exportPlanAsCsv, exportPlanAsJson } from '@/lib/export-utils';
 import { downloadIcsFile } from '@/lib/ics-export';
+import { formatCurrency } from '@/lib/budget-math';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -43,6 +44,27 @@ export function ExportModal({
     downloadIcsFile(plan);
     setDownloadedFormat('ics');
     setTimeout(() => setDownloadedFormat(null), 3000);
+  };
+
+  const handleCopy = async () => {
+    try {
+      const summaryText = `${plan.intake.eventTitle} (${plan.intake.eventType.toUpperCase()})\nDate: ${plan.intake.eventDate} | Location: ${plan.intake.location} | Headcount: ${plan.intake.guestCount}\nBudget: ${formatCurrency(plan.budget.totalBudget, plan.budget.currency)} ${plan.budget.currency}\n\nEXECUTIVE SUMMARY:\n${plan.executiveSummary}\n\nBUDGET ALLOCATION:\n${plan.budget.items.map((i) => `- ${i.category}: ${formatCurrency(i.allocatedAmount, plan.budget.currency)} (${i.percentage}%)`).join('\n')}\nContingency Reserve: ${formatCurrency(plan.budget.contingencyAmount, plan.budget.currency)}\n\nKEY TIMELINE TASKS:\n${plan.timeline.tasks.slice(0, 8).map((t) => `- [${t.timeOffset}] ${t.title} (${t.priority} priority - Owner: ${t.owner})`).join('\n')}`;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(summaryText);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = summaryText;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setDownloadedFormat('copy');
+      setTimeout(() => setDownloadedFormat(null), 3000);
+    } catch {
+      // fallback
+    }
   };
 
   return (
@@ -176,6 +198,33 @@ export function ExportModal({
               </span>
               <span className="text-xs text-[var(--muted)] mt-1 block leading-relaxed">
                 Formats the entire multi-section plan into a clean document binder ready for printing or saving as PDF.
+              </span>
+            </span>
+          </button>
+
+          {/* Option 5: Instant Copy to Clipboard */}
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="w-full text-left p-3.5 rounded-2xl border border-[var(--royal)]/30 hover:border-[var(--cyan)]/60 bg-[var(--surface-2)]/70 hover:bg-[var(--surface-2)] transition-all flex items-start gap-3.5 group cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--cyan)]"
+          >
+            <span className="p-2.5 rounded-xl bg-[var(--surface)] text-[var(--cyan)] border border-[var(--cyan)]/30 group-hover:scale-105 transition-all shrink-0">
+              <Copy className="w-5 h-5" aria-hidden="true" />
+            </span>
+            <span className="flex-1 block">
+              <span className="flex items-center justify-between">
+                <span className="font-bold text-sm text-white group-hover:text-[var(--cyan)] transition-colors">
+                  Copy Plan Summary to Clipboard
+                </span>
+                {downloadedFormat === 'copy' && (
+                  <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" aria-hidden="true" />
+                    Copied!
+                  </span>
+                )}
+              </span>
+              <span className="text-xs text-[var(--muted)] mt-1 block leading-relaxed">
+                Copies structured executive summary, budget breakdown, and milestones for quick pasting into emails or chats.
               </span>
             </span>
           </button>

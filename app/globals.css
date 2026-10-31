@@ -64,17 +64,16 @@ em, i, .font-accent {
   }
 }
 
-/* Global scrollbar enhancements: replace default stark-white OS scrollbars */
-html {
+/* Global scrollbar enhancements: hide all default stark-white OS scrollbars */
+html,
+body {
   color-scheme: dark;
-}
-
-* {
   scrollbar-width: thin;
-  scrollbar-color: rgba(167, 139, 250, 0.25) transparent;
+  scrollbar-color: rgba(109, 40, 217, 0.4) transparent;
 }
 
-/* Hide default chunky browser scrollbar arrow buttons */
+/* Hide chunky browser scrollbar arrow buttons across all elements */
+*::-webkit-scrollbar-button,
 ::-webkit-scrollbar-button {
   display: none !important;
   width: 0 !important;
@@ -82,40 +81,52 @@ html {
 }
 
 /* Sleek WebKit scrollbar track and thumb */
+*::-webkit-scrollbar,
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 6px !important;
+  height: 6px !important;
 }
 
+*::-webkit-scrollbar-track,
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #0A0612 !important;
 }
 
+*::-webkit-scrollbar-thumb,
 ::-webkit-scrollbar-thumb {
-  background: rgba(167, 139, 250, 0.25);
-  border-radius: 9999px;
-  transition: background 0.2s ease;
+  background: rgba(109, 40, 217, 0.4) !important;
+  border-radius: 9999px !important;
+  border: 1px solid rgba(10, 6, 18, 0.6) !important;
 }
 
+*::-webkit-scrollbar-thumb:hover,
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(245, 196, 81, 0.5);
+  background: rgba(34, 229, 255, 0.6) !important;
 }
 
+*::-webkit-scrollbar-corner,
 ::-webkit-scrollbar-corner {
-  background: transparent;
+  background: transparent !important;
 }
 
-/* Clean up textarea scrollbars and resize corners */
-textarea {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(167, 139, 250, 0.25) transparent;
-  overflow-y: auto;
+/* Completely remove native chunky white scrollbars and resizers from all textareas and inputs */
+textarea,
+input,
+select {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+textarea::-webkit-scrollbar,
+input::-webkit-scrollbar,
+select::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 textarea::-webkit-resizer {
-  background-color: transparent;
-  border-bottom: 2px solid rgba(167, 139, 250, 0.3);
-  border-right: 2px solid rgba(167, 139, 250, 0.3);
+  display: none !important;
 }
 
 /* Utility to completely hide scrollbar while preserving smooth scrolling */

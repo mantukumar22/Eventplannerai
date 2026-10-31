@@ -53,7 +53,11 @@ export function Header({
         {/* Brand */}
         <a
           href="#"
-          className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan)] rounded-xl py-1 px-1.5"
+          onClick={(e) => {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan)] rounded-xl py-1 px-1.5 cursor-pointer"
         >
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[var(--royal)] via-[var(--surface-2)] to-[var(--magenta)]/30 border border-[var(--royal-light)]/30 flex items-center justify-center shadow-lg shadow-[var(--royal)]/20 group-hover:border-[var(--gold)]/60 transition-all">
             <CrownIcon size={22} className="text-[var(--gold)] drop-shadow" />
@@ -130,14 +134,14 @@ export function Header({
               </button>
             </div>
           ) : (
-            <a
-              href="#planner"
+            <button
+              type="button"
               onClick={onStartPlanning}
               className="btn-cyan px-5 py-2 text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg cursor-pointer"
             >
               <span>Start Planning</span>
               <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            </a>
+            </button>
           )}
 
           {/* Mobile Menu Toggle Button */}
@@ -178,17 +182,17 @@ export function Header({
               </a>
             ))}
 
-            <a
-              href="#planner"
+            <button
+              type="button"
               onClick={() => {
                 handleLinkClick();
                 onStartPlanning?.();
               }}
-              className="btn-cyan w-full mt-2 text-center py-3 text-sm font-bold flex items-center justify-center gap-2"
+              className="btn-cyan w-full mt-2 text-center py-3 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Plan My Event Now</span>
               <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            </a>
+            </button>
           </div>
         </div>
       )}

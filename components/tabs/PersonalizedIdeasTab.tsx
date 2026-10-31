@@ -25,16 +25,16 @@ export function PersonalizedIdeasTab({
   themeVibe,
   onOpenRegenerate,
 }: PersonalizedIdeasTabProps) {
-  const [sectionRating, setSectionRating] = useState<'up' | 'down' | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        return (localStorage.getItem('rating_ideas') as 'up' | 'down') || null;
-      } catch {
-        return null;
-      }
+  const [sectionRating, setSectionRating] = useState<'up' | 'down' | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem('rating_ideas') as 'up' | 'down' | null;
+      if (saved) setSectionRating(saved);
+    } catch {
+      // safe fallback
     }
-    return null;
-  });
+  }, []);
 
   return (
     <div className="space-y-6">

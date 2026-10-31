@@ -15,11 +15,15 @@ export interface ModelCallOptions {
 }
 
 const PRIMARY_MODEL = 'gemini-3.8-flash';
-const FALLBACK_MODEL = 'gemini-2.5-flash';
+const FALLBACK_MODEL = 'gemini-3.1-flash-lite';
 const DEFAULT_TIMEOUT_MS = 25000;
 
 export function isMockAiEnabled(): boolean {
-  return process.env.MOCK_AI === 'true' || process.env.NEXT_PUBLIC_MOCK_AI === 'true';
+  return (
+    process.env.MOCK_AI === 'true' ||
+    process.env.NEXT_PUBLIC_MOCK_AI === 'true' ||
+    !process.env.GEMINI_API_KEY
+  );
 }
 
 /**

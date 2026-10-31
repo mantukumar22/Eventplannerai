@@ -43,16 +43,16 @@ export function TimelineTab({
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [filterCompleted, setFilterCompleted] = useState<'all' | 'pending' | 'completed'>('all');
   const [lastToggledTask, setLastToggledTask] = useState<string | null>(null);
-  const [sectionRating, setSectionRating] = useState<'up' | 'down' | null>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        return (localStorage.getItem('rating_timeline') as 'up' | 'down') || null;
-      } catch {
-        return null;
-      }
+  const [sectionRating, setSectionRating] = useState<'up' | 'down' | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem('rating_timeline') as 'up' | 'down' | null;
+      if (saved) setSectionRating(saved);
+    } catch {
+      // safe fallback
     }
-    return null;
-  });
+  }, []);
 
   const completedCount = tasks.filter((t) => t.completed).length;
   const totalCount = tasks.length;

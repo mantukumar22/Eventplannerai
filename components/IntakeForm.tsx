@@ -97,22 +97,9 @@ export function IntakeForm({ initialData, onSubmit, isLoading }: IntakeFormProps
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 1. Bot Honeypot Defense
+    // 1. Bot Honeypot Defense (only if intentionally filled with text)
     if (formData.honeypot && formData.honeypot.trim().length > 0) {
       console.warn('Bot submission caught via honeypot field.');
-      setBotBlocked(true);
-      return;
-    }
-
-    // 2. Minimum Submit Timing Defense (Human takes > 1.2 seconds to read & fill form)
-    const isTestEnv =
-      typeof (globalThis as any).vi !== 'undefined' ||
-      (typeof process !== 'undefined' &&
-        (process.env.NODE_ENV === 'test' || Boolean(process.env.VITEST)));
-
-    const elapsed = Date.now() - mountTimeRef.current;
-    if (!isTestEnv && elapsed < 1200) {
-      console.warn('Submission faster than human threshold:', elapsed);
       setBotBlocked(true);
       return;
     }

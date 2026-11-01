@@ -65,11 +65,18 @@ em, i, .font-accent {
 }
 
 /* Global scrollbar enhancements: hide all default stark-white OS scrollbars */
+*,
+*::before,
+*::after {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(109, 40, 217, 0.5) #0A0612;
+}
+
 html,
 body {
   color-scheme: dark;
   scrollbar-width: thin;
-  scrollbar-color: rgba(109, 40, 217, 0.4) transparent;
+  scrollbar-color: rgba(109, 40, 217, 0.5) #0A0612;
 }
 
 /* Hide chunky browser scrollbar arrow buttons across all elements */
@@ -83,8 +90,9 @@ body {
 /* Sleek WebKit scrollbar track and thumb */
 *::-webkit-scrollbar,
 ::-webkit-scrollbar {
-  width: 6px !important;
-  height: 6px !important;
+  width: 8px !important;
+  height: 8px !important;
+  background-color: #0A0612 !important;
 }
 
 *::-webkit-scrollbar-track,
@@ -94,19 +102,19 @@ body {
 
 *::-webkit-scrollbar-thumb,
 ::-webkit-scrollbar-thumb {
-  background: rgba(109, 40, 217, 0.4) !important;
+  background: rgba(109, 40, 217, 0.6) !important;
   border-radius: 9999px !important;
-  border: 1px solid rgba(10, 6, 18, 0.6) !important;
+  border: 2px solid #0A0612 !important;
 }
 
 *::-webkit-scrollbar-thumb:hover,
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(34, 229, 255, 0.6) !important;
+  background: rgba(34, 229, 255, 0.75) !important;
 }
 
 *::-webkit-scrollbar-corner,
 ::-webkit-scrollbar-corner {
-  background: transparent !important;
+  background: #0A0612 !important;
 }
 
 /* Completely remove native chunky white scrollbars and resizers from all textareas and inputs */

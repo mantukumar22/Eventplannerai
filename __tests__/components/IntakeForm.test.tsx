@@ -60,10 +60,12 @@ describe('IntakeForm Component', () => {
 
     await waitFor(() => {
       expect(handleSubmit).toHaveBeenCalledTimes(1);
-      const passedData = handleSubmit.mock.calls[0][0];
-      expect(passedData.eventTitle).toBe('Alex & Jordan Sunset Wedding');
-      expect(passedData.guestCount).toBe(120);
-      expect(passedData.totalBudget).toBe(25000);
+      const firstCall = handleSubmit.mock.calls[0];
+      expect(firstCall).toBeDefined();
+      const passedData = firstCall?.[0];
+      expect(passedData?.eventTitle).toBe('Alex & Jordan Sunset Wedding');
+      expect(passedData?.guestCount).toBe(120);
+      expect(passedData?.totalBudget).toBe(25000);
     });
   });
 

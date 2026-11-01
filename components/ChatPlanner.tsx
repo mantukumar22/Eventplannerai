@@ -1,26 +1,26 @@
 'use client';
 
+/**
+ * @file components/ChatPlanner.tsx
+ * @description Floating "Ask the Planner" interactive assistant grounded in the user's specific event plan.
+ */
+
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  X,
-  Send,
-  Sparkles,
-  Bot,
-  User,
-  Loader2,
-} from 'lucide-react';
-import { EventPlan } from '@/lib/schemas';
-import { CrownIcon } from './CrownIcon';
+import { X, Send } from 'lucide-react';
+import { type EventPlan } from '@/lib/schemas';
+import { CrownIcon } from '@/components/CrownIcon';
+import { ChatMessageBubble, type ChatMessage } from '@/components/chat/ChatMessageBubble';
+import { SuggestedPrompts } from '@/components/chat/SuggestedPrompts';
 
 interface ChatPlannerProps {
   plan: EventPlan;
 }
 
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-}
+const SAMPLE_QUESTIONS = [
+  'How can I shave 10% off catering?',
+  'What should I confirm 2 weeks before?',
+  'Any DIY decor suggestions for this theme?',
+] as const;
 
 export function ChatPlanner({ plan }: ChatPlannerProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,10 +35,11 @@ export function ChatPlanner({ plan }: ChatPlannerProps) {
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messageIdRef = useRef(1);
 
   const completedCount = plan.timeline.tasks.filter((t) => t.completed).length;
 
-  const scrollToBottom = () => {
+  const scrollToBottom = (): void => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -49,10 +50,8 @@ export function ChatPlanner({ plan }: ChatPlannerProps) {
     }
   }, [isOpen, messages]);
 
-  const messageIdRef = useRef(1);
-
-  const handleSendMessage = async (textToSend?: string) => {
-    const text = (textToSend || input).trim();
+  const handleSendMessage = async (textToSend?: string): Promise<void> => {
+    const text = (textToSend ?? input).trim();
     if (!text || isStreaming) return;
 
     messageIdRef.current += 1;
@@ -118,8 +117,7 @@ export function ChatPlanner({ plan }: ChatPlannerProps) {
           );
         }
       }
-    } catch (error) {
-      console.error('Chat error:', error);
+    } catch {
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === assistantMsgId
@@ -135,12 +133,6 @@ export function ChatPlanner({ plan }: ChatPlannerProps) {
       setIsStreaming(false);
     }
   };
-
-  const sampleQuestions = [
-    'How can I shave 10% off catering?',
-    'What should I confirm 2 weeks before?',
-    'Any DIY decor suggestions for this theme?',
-  ];
 
   return (
     <div className="fixed bottom-5 right-5 z-50 print:hidden">
@@ -183,7 +175,7 @@ export function ChatPlanner({ plan }: ChatPlannerProps) {
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="p-1.5 rounded-xl text-[var(--muted)] hover:text-white hover:bg-[var(--surface)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--gold)]"
+              className="p-1.5 rounded-xl text-[var(--muted)] hover:text-white hover:bg-[var(--surface)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--gold)] cursor-pointer"
               aria-label="Close chat window"
             >
               <X className="w-5 h-5" aria-hidden="true" />
@@ -193,64 +185,23 @@ export function ChatPlanner({ plan }: ChatPlannerProps) {
           {/* Messages scroll area */}
           <div className="flex-1 p-4 overflow-y-auto space-y-3.5 bg-[var(--surface)]/60 text-xs sm:text-sm">
             {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex gap-2.5 ${
-                  msg.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                {msg.role === 'assistant' && (
-                  <div className="w-6 h-6 rounded-full bg-[var(--royal)]/30 text-[var(--gold)] border border-[var(--gold)]/30 flex items-center justify-center shrink-0 mt-0.5">
-                    <Bot className="w-3.5 h-3.5" aria-hidden="true" />
-                  </div>
-                )}
-
-                <div
-                  className={`p-3.5 rounded-2xl max-w-[85%] leading-relaxed ${
-                    msg.role === 'user'
-                      ? 'bg-[var(--cyan)] text-[#04121A] font-bold rounded-tr-xs shadow-md'
-                      : 'bg-[var(--surface-2)]/90 border border-[var(--royal)]/30 text-[var(--text)] shadow-xs rounded-tl-xs whitespace-pre-wrap'
-                  }`}
-                >
-                  {msg.content || (
-                    <span className="flex items-center gap-1.5 text-[var(--muted)] italic">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--gold)]" aria-hidden="true" />
-                      Thinking...
-                    </span>
-                  )}
-                </div>
-
-                {msg.role === 'user' && (
-                  <div className="w-6 h-6 rounded-full bg-[var(--surface-2)] text-[var(--cyan)] border border-[var(--cyan)]/30 flex items-center justify-center shrink-0 mt-0.5">
-                    <User className="w-3.5 h-3.5" aria-hidden="true" />
-                  </div>
-                )}
-              </div>
+              <ChatMessageBubble key={msg.id} message={msg} />
             ))}
             <div ref={messagesEndRef} />
           </div>
 
           {/* Suggested Prompts */}
-          <div className="p-2.5 bg-[var(--surface-2)]/60 border-t border-[var(--royal)]/20 flex items-center gap-2 overflow-x-auto no-scrollbar text-[11px]">
-            <span className="text-[var(--gold)] font-bold px-1 shrink-0">Try:</span>
-            {sampleQuestions.map((q, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => handleSendMessage(q)}
-                disabled={isStreaming}
-                className="whitespace-nowrap px-3 py-1 rounded-full bg-[var(--surface)] hover:bg-[var(--surface-2)] border border-[var(--royal)]/40 text-[var(--muted)] hover:text-white transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--gold)] cursor-pointer disabled:opacity-50"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
+          <SuggestedPrompts
+            questions={SAMPLE_QUESTIONS}
+            disabled={isStreaming}
+            onSelect={handleSendMessage}
+          />
 
           {/* Input Box */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              handleSendMessage();
+              void handleSendMessage();
             }}
             className="p-3 bg-[var(--surface-2)] border-t border-[var(--royal)]/25 flex items-center gap-2"
           >

@@ -133,18 +133,22 @@ export function normalizeBudgetItems(
     let maxIdx = 0;
     let maxVal = -1;
     for (let i = 0; i < normalized.length; i++) {
-      if (normalized[i].allocatedAmount > maxVal) {
-        maxVal = normalized[i].allocatedAmount;
+      const item = normalized[i];
+      if (item && item.allocatedAmount > maxVal) {
+        maxVal = item.allocatedAmount;
         maxIdx = i;
       }
     }
 
-    const correctedAmount = Math.round((normalized[maxIdx].allocatedAmount + drift) * 100) / 100;
-    normalized[maxIdx] = {
-      ...normalized[maxIdx],
-      allocatedAmount: Math.max(0, correctedAmount),
-      percentage: Number(((Math.max(0, correctedAmount) / totalBudget) * 100).toFixed(1)),
-    };
+    const targetItem = normalized[maxIdx];
+    if (targetItem) {
+      const correctedAmount = Math.round((targetItem.allocatedAmount + drift) * 100) / 100;
+      normalized[maxIdx] = {
+        ...targetItem,
+        allocatedAmount: Math.max(0, correctedAmount),
+        percentage: Number(((Math.max(0, correctedAmount) / totalBudget) * 100).toFixed(1)),
+      };
+    }
   }
 
   return normalized;
@@ -250,17 +254,19 @@ export function rescaleBudgetByGuestCount(
 
 export type BudgetSeverity = 'balanced' | 'under' | 'caution' | 'critical';
 
+export interface BudgetSeverityReport {
+  severity: BudgetSeverity;
+  difference: number;
+  message: string;
+}
+
 /**
  * Over/Under Budget Severity detector with human-friendly guidance.
  */
 export function getBudgetSeverity(
   totalAllocated: number,
   totalBudget: number
-): {
-  severity: BudgetSeverity;
-  difference: number;
-  message: string;
-} {
+): BudgetSeverityReport {
   const diff = Math.round((totalBudget - totalAllocated) * 100) / 100;
 
   if (Math.abs(diff) <= 1) {

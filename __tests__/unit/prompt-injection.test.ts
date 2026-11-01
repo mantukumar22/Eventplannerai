@@ -30,7 +30,7 @@ describe('Prompt-Injection Defense & Input Boundary Suite', () => {
 
       expect(res.success).toBe(false);
       if (!res.success) {
-        expect(res.error.issues[0].message).toContain('must be under 80 characters');
+        expect(res.error.issues[0]?.message).toContain('must be under 80 characters');
       }
     });
 

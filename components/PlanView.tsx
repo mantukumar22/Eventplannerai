@@ -108,9 +108,12 @@ export function PlanView({
       return;
     }
 
-    const nextTab = tabs[targetIndex].id;
-    setActiveTab(nextTab);
-    tabRefs.current.get(nextTab)?.focus();
+    const nextTabObj = tabs[targetIndex];
+    if (nextTabObj) {
+      const nextTab = nextTabObj.id;
+      setActiveTab(nextTab);
+      tabRefs.current.get(nextTab)?.focus();
+    }
   };
 
   return (

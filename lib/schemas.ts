@@ -244,11 +244,14 @@ export const EventPlanSchema = z.object({
 });
 export type EventPlan = z.infer<typeof EventPlanSchema>;
 
+export const PlanTabIdEnum = z.enum(['budget', 'timeline', 'vendors', 'ideas']);
+export type PlanTabId = z.infer<typeof PlanTabIdEnum>;
+
 /**
  * Regenerate Section Request Schema
  */
 export const RegenerateSectionSchema = z.object({
-  section: z.enum(['budget', 'timeline', 'vendors', 'ideas']),
+  section: PlanTabIdEnum,
   instruction: z.string().trim().min(3).max(300),
   currentPlan: EventPlanSchema,
 });

@@ -126,7 +126,7 @@ describe('AI Guardrails & Sanitization Library', () => {
 
       const sanitized = sanitizePlan(plan);
       expect(sanitized.executiveSummary).toBe('A fun party');
-      expect(sanitized.budget.items[0].category).toBe('Decor');
+      expect(sanitized.budget.items[0]?.category).toBe('Decor');
       expect(sanitized.assumptions?.[0]).toBe('Assume indoor');
     });
   });

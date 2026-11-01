@@ -38,7 +38,7 @@ export class MemoryRateLimiter {
     record.timestamps = record.timestamps.filter((ts) => ts > windowStart);
 
     if (record.timestamps.length >= this.maxRequests) {
-      const oldestInWindow = record.timestamps[0];
+      const oldestInWindow = record.timestamps[0] ?? now;
       const resetMs = oldestInWindow + this.windowMs - now;
       const resetSeconds = Math.max(1, Math.ceil(resetMs / 1000));
 
@@ -77,7 +77,10 @@ export const globalRateLimiter = new MemoryRateLimiter();
 export function getClientIp(req: Request): string {
   const forwarded = req.headers.get('x-forwarded-for');
   if (forwarded) {
-    return forwarded.split(',')[0].trim();
+    const firstIp = forwarded.split(',')[0];
+    if (firstIp) {
+      return firstIp.trim();
+    }
   }
   const realIp = req.headers.get('x-real-ip');
   if (realIp) {

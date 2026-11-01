@@ -17,7 +17,7 @@ function formatIcsDateTime(dateStr: string, timeStr?: string): string {
 
   // Parse time e.g. "09:00 AM", "14:30", "05:30 PM"
   const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-  if (!match) {
+  if (!match || !match[1] || !match[2]) {
     return `${cleanDate}T090000Z`;
   }
 

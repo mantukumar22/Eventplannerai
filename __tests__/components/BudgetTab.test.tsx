@@ -49,8 +49,10 @@ describe('BudgetTab Component', () => {
     fireEvent.change(venueInput, { target: { value: '4500' } });
 
     expect(handleUpdate).toHaveBeenCalledTimes(1);
-    const updated = handleUpdate.mock.calls[0][0];
-    const venueItem = updated.items.find((i: any) => i.category === 'Venue');
-    expect(venueItem.allocatedAmount).toBe(4500);
+    const firstCall = handleUpdate.mock.calls[0];
+    expect(firstCall).toBeDefined();
+    const updated = firstCall?.[0];
+    const venueItem = updated?.items.find((i: { category: string }) => i.category === 'Venue');
+    expect(venueItem?.allocatedAmount).toBe(4500);
   });
 });

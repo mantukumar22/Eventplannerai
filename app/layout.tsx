@@ -1,8 +1,12 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import '@fontsource-variable/unbounded';
 import '@fontsource-variable/plus-jakarta-sans';
 import '@fontsource/playfair-display/400-italic.css';
 import './globals.css';
+
+// Force dynamic per-request rendering so middleware supplies fresh x-nonce on every page load
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'EventCraft AI - Royal Event Planning Assistant',
@@ -31,11 +35,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const headersList = await headers();
+  const nonce = headersList.get('x-nonce') ?? undefined;
+
   return (
     <html lang="en" className="h-full scroll-smooth dark" style={{ colorScheme: 'dark' }}>
       <body

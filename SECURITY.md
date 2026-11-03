@@ -25,19 +25,30 @@
   3. **Sliding-Window IP Rate Limiter:** Enforces max 8 requests per minute per IP address, returning `429 Too Many Requests` with a `Retry-After` header.
 
 ### Threat D: Cross-Site Scripting (XSS) & Content Injection
-- **Risk:** Stored or reflected XSS payloads embedded in AI-generated strings or user notes.
+- **Risk:** Stored or reflected XSS payloads embedded in AI-generated strings or user notes, or rogue script execution.
 - **Mitigation:**
-  1. Next.js App Router middleware generates a per-request cryptographic nonce.
-  2. Strict Content Security Policy (CSP):
-     ```
+  1. **Edge-Compatible Cryptographic Nonce Generation:** Next.js Edge Middleware (`middleware.ts`) generates a fresh, unique cryptographic nonce per request using standard Web APIs: `btoa(crypto.randomUUID())`.
+  2. **Dual Header Forwarding:** The middleware sets BOTH `x-nonce` and `Content-Security-Policy` on the forwarded request headers (`requestHeaders`). Next.js App Router reads this request header to automatically stamp `nonce="..."` on all framework chunks (`_next/static/chunks/*.js`), webpack runtimes, and hydration scripts.
+  3. **Forced Dynamic Rendering:** In `app/layout.tsx`, the root layout is an async server component consuming `await headers()` alongside `export const dynamic = 'force-dynamic'`. This prevents stale static HTML prerendering and guarantees a fresh nonce is minted and stamped on every HTML request.
+  4. **Single Source of Truth (No Header Duplication):** CSP is declared exclusively in `middleware.ts` and removed from `next.config.ts`, avoiding browser header intersection anomalies where conflicting policies break script execution.
+  5. **Strict CSP Directives:**
+     ```http
      default-src 'self';
-     script-src 'self' 'nonce-{NONCE}' 'strict-dynamic';
+     script-src 'self' 'nonce-{NONCE}' 'strict-dynamic' https:;
      style-src 'self' 'unsafe-inline';
-     img-src 'self' blob: data: https://picsum.photos;
+     img-src 'self' blob: data: https://picsum.photos https://images.unsplash.com https:;
+     font-src 'self';
+     connect-src 'self';
      object-src 'none';
      base-uri 'self';
+     form-action 'self';
+     frame-ancestors 'none';
+     upgrade-insecure-requests
      ```
-  3. All user and AI strings pass through `sanitizeString()` stripping any `<script>`, `<iframe>`, or inline event handler attributes.
+     - `'unsafe-inline'` is strictly excluded from `script-src`.
+     - `'strict-dynamic'` allows authenticated framework scripts to dynamically load their dependent split chunks.
+     - In development mode only, `'unsafe-eval'` is permitted for Fast Refresh compilation.
+  6. **Defense-in-Depth Output Sanitization:** All user and AI strings pass through `sanitizeString()` which strips `<script>`, `<iframe>`, and inline event handler attributes prior to rendering.
 
 ### Threat E: User Privacy & Data Protection
 - **Policy:** Zero third-party telemetry, tracking pixels, or external analytics are embedded in the application.
